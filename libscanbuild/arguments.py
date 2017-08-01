@@ -20,7 +20,8 @@ import logging
 import tempfile
 from typing import Tuple, Dict  # noqa: ignore=F401
 from libscanbuild import reconfigure_logging, CtuConfig
-from libscanbuild.clang import get_checkers, is_ctu_capable
+from libscanbuild.clang import get_checkers
+from libscanbuild.ctu import is_ctu_capable
 
 __all__ = ['parse_args_for_intercept_build', 'parse_args_for_analyze_build',
            'parse_args_for_scan_build']
