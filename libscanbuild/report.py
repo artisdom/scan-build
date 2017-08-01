@@ -260,26 +260,22 @@ def read_bugs(output_dir, html):
     times with different compiler options. These would be better to show in
     the final report (cover) only once. """
 
-    parser = parse_bug_html if html else parse_bug_plist
-    pattern = '*.html' if html else '*.plist'
+    def empty(f):
+        return 0 == os.stat(f).st_size
 
     duplicate = duplicate_check(
         lambda bug: '{bug_line}.{bug_path_length}:{bug_file}'.format(**bug))
 
-    # Protect parsers from bogus report files coming from clang crashes
-    for filename in glob.iglob(os.path.join(output_dir, pattern)):
-        if os.stat(filename).st_size == 0:
-            try:
-                os.remove(filename)
-            except OSError:
-                pass
+    # get the right parser for the job.
+    parser = parse_bug_html if html else parse_bug_plist
+    # get the input files, which are not empty.
+    pattern = os.path.join(output_dir, '*.html' if html else '*.plist')
+    bug_files = (file for file in glob.iglob(pattern) if not empty(file))
 
-    bugs = itertools.chain.from_iterable(
-        # parser creates a bug generator not the bug itself
-        parser(filename)
-        for filename in glob.iglob(os.path.join(output_dir, pattern)))
-
-    return (bug for bug in bugs if not duplicate(bug))
+    for bug_file in bug_files:
+        for bug in parser(bug_file):
+            if not duplicate(bug):
+                yield bug
 
 
 def parse_bug_plist(filename):
